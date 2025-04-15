@@ -213,10 +213,9 @@ func (s *Server) RefreshHandler(c *gin.Context) {
 	}
 
 	if originalIP != newIP {
-		log.Printf("WARNING: IP change detected for user %s: %s -> %s", user.Email, originalIP, newIP)
+		log.Printf("IP change detected for user %s: %s -> %s", user.Email, originalIP, newIP)
 	}
 
-	// Генерация новой пары токенов
 	accessToken, newAccessID, err := jwtSvc.GenerateToken(user, newIP)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to generate new access token"})
