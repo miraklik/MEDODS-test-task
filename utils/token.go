@@ -40,7 +40,7 @@ func (j *JWTService) GenerateToken(user db.User, userIP string) (string, string,
 		"exp":       time.Now().Add(time.Hour * time.Duration(tokenLifespan)).Unix(),
 	}
 
-	token := jwt.NewWithClaims(jwt.SigningMethodES512, claims)
+	token := jwt.NewWithClaims(jwt.SigningMethodHS512, claims)
 
 	signedToken, err := token.SignedString([]byte(j.cfg.JWT.Secret))
 	if err != nil {

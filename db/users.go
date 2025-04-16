@@ -12,8 +12,8 @@ import (
 
 type User struct {
 	gorm.Model
-	Email    string `gorm:"unique" json:"email"`
-	Nickname string `json:"nickname"`
+	Email    string `gorm:"size:255;unique;not null" json:"email"`
+	Nickname string `gorm:"size:255;unique;not null" json:"nickname"`
 	Password string `gorm:"size:255;not null"`
 }
 
@@ -40,11 +40,6 @@ func (u *User) HashedPassword() error {
 	hashed, err := bcrypt.GenerateFromPassword([]byte(u.Password), bcrypt.DefaultCost)
 	if err != nil {
 		log.Printf("Failed to hash password: %v", err)
-		return err
-	}
-
-	if err := VerifyPassword(u.Password, string(hashed)); err != nil {
-		log.Printf("Failed to verify password: %v", err)
 		return err
 	}
 

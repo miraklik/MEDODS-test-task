@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"test-task/config"
@@ -42,7 +43,7 @@ func (s *Server) RegisterUser(c *gin.Context) {
 	var Input RegisterUser
 
 	if err := c.ShouldBindJSON(&Input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "failed to bind JSON"})
 		return
 	}
 
@@ -52,7 +53,7 @@ func (s *Server) RegisterUser(c *gin.Context) {
 		Password: Input.Password,
 	}
 	if err := utils.ValidatePassword(Input.Password); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "failed to validate password: " + err.Error()})
 		return
 	}
 	if err := user.HashedPassword(); err != nil {
@@ -82,7 +83,7 @@ func (s *Server) LoginUser(c *gin.Context) {
 	var Input LoginUser
 
 	if err := c.ShouldBindJSON(&Input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "failed to bind JSON"})
 		return
 	}
 
@@ -90,7 +91,7 @@ func (s *Server) LoginUser(c *gin.Context) {
 
 	token, err := s.LoginCheck(user.Nickname, user.Password)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid username or password: " + err.Error()})
 		return
 	}
 
@@ -107,22 +108,19 @@ func (s *Server) LoginCheck(username, password string) (string, error) {
 
 	user := db.User{}
 
-	if err = s.db.Model(db.User{}).Where("username=?", username).Take(&user).Error; err != nil {
-		return "", err
+	if err = s.db.Model(&db.User{}).Where("nickname = ?", username).Take(&user).Error; err != nil {
+		return "", fmt.Errorf("invalid username")
 	}
 
 	err = db.VerifyPassword(password, user.Password)
 
 	if err != nil && err == bcrypt.ErrMismatchedHashAndPassword {
-		return "", err
+		return "", fmt.Errorf("invalide password")
 	}
 
-	var c *gin.Context
-
-	token, _, err := util.GenerateToken(user, utils.GetClientIP(c))
-
+	token, _, err := util.GenerateToken(user, "")
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to generate token: %w", err)
 	}
 
 	return token, nil

@@ -27,11 +27,8 @@ func main() {
 
 	server := handlers.NewServer(database)
 
-	router1 := r.Group("/auth")
-	{
-		router1.POST("/register", server.RegisterUser)
-		router1.POST("/login", server.LoginUser)
-	}
+	r.POST("/register", server.RegisterUser)
+	r.POST("/login", server.LoginUser)
 
 	router2 := r.Group("/auth")
 	router2.Use(jwtService.Middleware())
@@ -40,7 +37,7 @@ func main() {
 		router2.POST("/refresh", server.RefreshHandler)
 	}
 
-	if err := r.Run(":" + cfg.Server.Port); err != nil {
+	if err := r.Run(":8080"); err != nil {
 		log.Fatalf("Failed to start server: %v", err)
 	}
 }
