@@ -7,13 +7,13 @@ RUN go mod tidy
 
 COPY . .
 
-RUN go build -o ./cmd
+RUN go build -o /app/app ./cmd/main.go
 
 FROM alpine:latest
 
-RUN RUN apk --no-cache add ca-certificates
+RUN apk --no-cache add ca-certificates
 
-COPY --from=builder /app/auth-app /auth-app
+COPY --from=builder /app/cmd /cmd
 
 EXPOSE 8080 
 
